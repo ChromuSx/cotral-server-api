@@ -41,7 +41,7 @@ export class StopsService {
         return null;
     }
 
-    public async getStopsByLocality(locality: string): Promise<Stop[] | null> {
+    public async getStopsByLocality(locality: string): Promise<Stop[]> {
         try {
             const response = await axios.get(`${this.baseURL}/PIV.do`, {
                 params: {
@@ -69,6 +69,6 @@ export class StopsService {
             return [];
         }
 
-        return null;
+        return [];
     }
 }

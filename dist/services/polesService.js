@@ -84,26 +84,28 @@ class PolesService {
         }
         return null;
     }
-    async getPoleByArrivalAndDestinationLocality(arrivalLocality, destinationLocality) {
+    async getPolesByArrivalAndDestinationLocality(arrivalLocality, destinationLocality) {
         try {
-            const firstStop = await this.stopsService.getFirstStopByLocality(arrivalLocality);
-            if (firstStop !== null) {
-                const poles = await this.getPolesByStopCode(firstStop.codiceStop);
-                if (poles !== null) {
-                    const filteredPoles = poles.filter((pole) => {
-                        return (pole.destinazioni &&
-                            pole.destinazioni.some(destinazione => destinazione.toLowerCase().includes(destinationLocality.toLowerCase())));
-                    });
-                    if (filteredPoles.length > 0) {
-                        return filteredPoles[0];
+            const stops = await this.stopsService.getStopsByLocality(arrivalLocality);
+            let result = [];
+            if (stops?.length > 0) {
+                for (const stop of stops) {
+                    const poles = await this.getPolesByStopCode(stop.codiceStop);
+                    if (poles !== null) {
+                        const filteredPoles = poles.filter((pole) => {
+                            return (pole.destinazioni &&
+                                pole.destinazioni.some(destinazione => destinazione.toLowerCase().includes(destinationLocality.toLowerCase())));
+                        });
+                        result = result.concat(filteredPoles);
                     }
                 }
             }
+            return result;
         }
         catch (error) {
             console.error('Error filtering poles by destination:', error);
+            return [];
         }
-        return null;
     }
     async getAllPolesDestinationsByArrivalLocality(arrivalLocality) {
         try {

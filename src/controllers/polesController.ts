@@ -10,7 +10,7 @@ export class PolesController {
 
         fastify.get('/poles/:stopCode', this.getPolesByStopCode.bind(this));
         fastify.get('/poles/position', this.getPolesByPosition.bind(this));
-        fastify.get('/poles/:arrivalLocality/:destinationLocality', this.getPoleByArrivalAndDestinationLocality.bind(this));
+        fastify.get('/poles/:arrivalLocality/:destinationLocality', this.getPolesByArrivalAndDestinationLocality.bind(this));
         fastify.get('/poles/destinations/:arrivalLocality', this.getAllPolesDestinationsByArrivalLocality.bind(this));
     }
 
@@ -51,7 +51,7 @@ export class PolesController {
         }
     }      
 
-    public async getPoleByArrivalAndDestinationLocality(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    public async getPolesByArrivalAndDestinationLocality(request: FastifyRequest, reply: FastifyReply): Promise<void> {
         const { arrivalLocality, destinationLocality } = request.params as { arrivalLocality: string; destinationLocality: string };
 
         if (!arrivalLocality || !destinationLocality) {
@@ -60,8 +60,8 @@ export class PolesController {
         }
 
         try {
-            const pole = await this.polesService.getPoleByArrivalAndDestinationLocality(arrivalLocality, destinationLocality);
-            reply.status(200).send(pole);
+            const poles = await this.polesService.getPolesByArrivalAndDestinationLocality(arrivalLocality, destinationLocality);
+            reply.status(200).send(poles);
         } catch (error) {
             console.error('Error getting pole by arrival and destination locality:', error);
             reply.status(500).send({ error: 'Internal server error' });

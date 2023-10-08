@@ -94,30 +94,31 @@ export class PolesService {
         return null;
     }
 
-    public async getPoleByArrivalAndDestinationLocality(arrivalLocality: string, destinationLocality: string): Promise<Pole | null> {
+    public async getPolesByArrivalAndDestinationLocality(arrivalLocality: string, destinationLocality: string): Promise<Pole[]> {
         try {
-            const firstStop = await this.stopsService.getFirstStopByLocality(arrivalLocality);
-
-            if (firstStop !== null) {
-                const poles = await this.getPolesByStopCode(firstStop.codiceStop);
-                if (poles !== null) {
-                    const filteredPoles = poles.filter((pole: Pole) => {
-                        return (
-                            pole.destinazioni &&
-                            pole.destinazioni.some(destinazione => destinazione.toLowerCase().includes(destinationLocality.toLowerCase()))
-                        );
-                    });
-                    if (filteredPoles.length > 0) {
-                        return filteredPoles[0];
+            const stops = await this.stopsService.getStopsByLocality(arrivalLocality);
+            let result: Pole[] = [];
+    
+            if (stops?.length > 0) {
+                for (const stop of stops) {
+                    const poles = await this.getPolesByStopCode(stop.codiceStop);
+                    if (poles !== null) {
+                        const filteredPoles = poles.filter((pole: Pole) => {
+                            return (
+                                pole.destinazioni &&
+                                pole.destinazioni.some(destinazione => destinazione.toLowerCase().includes(destinationLocality.toLowerCase()))
+                            );
+                        });
+                        result = result.concat(filteredPoles);
                     }
                 }
             }
+            return result;
         } catch (error) {
             console.error('Error filtering poles by destination:', error);
+            return [];
         }
-
-        return null;
-    }
+    }    
 
     public async getAllPolesDestinationsByArrivalLocality(arrivalLocality: string): Promise<string[] | null> {
         try {

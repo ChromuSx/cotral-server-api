@@ -7,7 +7,7 @@ class PolesController {
         this.polesService = new polesService_1.PolesService();
         fastify.get('/poles/:stopCode', this.getPolesByStopCode.bind(this));
         fastify.get('/poles/position', this.getPolesByPosition.bind(this));
-        fastify.get('/poles/:arrivalLocality/:destinationLocality', this.getPoleByArrivalAndDestinationLocality.bind(this));
+        fastify.get('/poles/:arrivalLocality/:destinationLocality', this.getPolesByArrivalAndDestinationLocality.bind(this));
         fastify.get('/poles/destinations/:arrivalLocality', this.getAllPolesDestinationsByArrivalLocality.bind(this));
     }
     async getPolesByStopCode(request, reply) {
@@ -43,15 +43,15 @@ class PolesController {
             reply.status(500).send({ error: 'Internal server error' });
         }
     }
-    async getPoleByArrivalAndDestinationLocality(request, reply) {
+    async getPolesByArrivalAndDestinationLocality(request, reply) {
         const { arrivalLocality, destinationLocality } = request.params;
         if (!arrivalLocality || !destinationLocality) {
             reply.status(400).send({ error: 'Invalid parameters' });
             return;
         }
         try {
-            const pole = await this.polesService.getPoleByArrivalAndDestinationLocality(arrivalLocality, destinationLocality);
-            reply.status(200).send(pole);
+            const poles = await this.polesService.getPolesByArrivalAndDestinationLocality(arrivalLocality, destinationLocality);
+            reply.status(200).send(poles);
         }
         catch (error) {
             console.error('Error getting pole by arrival and destination locality:', error);

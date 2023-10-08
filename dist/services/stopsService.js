@@ -63,7 +63,7 @@ class StopsService {
             console.error('Error searching stops:', error);
             return [];
         }
-        return null;
+        return [];
     }
 }
 exports.StopsService = StopsService;
