@@ -3,6 +3,23 @@ import { registerStopsRoutes } from './routes/stopsRoutes';
 import { registerPolesRoutes } from './routes/polesRoutes';
 import { registerTransitsRoutes } from './routes/transitsRoutes';
 import { registerVehiclesRoutes } from './routes/vehiclesRoutes';
+import sqlite3 from 'sqlite3';
+
+const db = new sqlite3.Database('./database.sqlite', (err) => {
+    if (err) {
+      return console.error(err.message);
+    }
+    console.log('Connected to the SQLite database.');
+  });
+  
+  db.run(`
+    CREATE TABLE IF NOT EXISTS favorite_poles (
+      user_id INTEGER,
+      pole_code STRING,
+      stop_code INTEGER,
+      PRIMARY KEY (user_id, pole_code, stop_code)
+    )
+  `);
 
 const createApp = async (): Promise<FastifyInstance> => {
     const app = await fastify({ logger: true });

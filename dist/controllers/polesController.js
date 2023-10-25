@@ -9,16 +9,27 @@ class PolesController {
         fastify.get('/poles/position', this.getPolesByPosition.bind(this));
         fastify.get('/poles/:arrivalLocality/:destinationLocality', this.getPolesByArrivalAndDestinationLocality.bind(this));
         fastify.get('/poles/destinations/:arrivalLocality', this.getAllPolesDestinationsByArrivalLocality.bind(this));
+        fastify.post('/poles/favorites', this.addFavoritePole.bind(this));
+        fastify.delete('/poles/favorites', this.removeFavoritePole.bind(this));
+        fastify.get('/poles/favorites/:userId', this.getFavoritePoles.bind(this));
     }
     async getPolesByStopCode(request, reply) {
         const { stopCode } = request.params;
-        if (!stopCode?.trim()) {
-            reply.status(400).send({ error: 'Invalid parameters' });
-            return;
-        }
+        const query = request.query;
+        const userId = query.userId ? parseInt(query.userId.toString(), 10) : undefined;
         try {
             const poles = await this.polesService.getPolesByStopCode(stopCode);
-            reply.code(200).send(poles || []);
+            if (poles && poles.length > 0) {
+                const updatedPoles = await Promise.all(poles.map(async (pole) => {
+                    pole.preferita = userId && pole.codicePalina ? await this.polesService.checkIfPoleIsFavorite(userId, pole.codicePalina) : false;
+                    pole.codiceStop = stopCode;
+                    return pole;
+                }));
+                reply.code(200).send(updatedPoles);
+            }
+            else {
+                reply.code(200).send(poles || []);
+            }
         }
         catch (error) {
             console.error(`Error searching poles by stop code "${stopCode}":`, error);
@@ -71,6 +82,43 @@ class PolesController {
         catch (error) {
             console.error(`Error getting all destinations by arrival locality "${arrivalLocality}":`, error);
             reply.status(500).send({ error: 'Failed to retrieve destinations' });
+        }
+    }
+    async getFavoritePoles(request, reply) {
+        const { userId } = request.params;
+        if (!userId) {
+            reply.status(400).send({ error: 'Invalid parameters' });
+            return;
+        }
+        try {
+            const favoritePoles = await this.polesService.getFavoritePoles(userId);
+            reply.code(200).send(favoritePoles || []);
+        }
+        catch (error) {
+            console.error(`Error getting favorite poles for user "${userId}":`, error);
+            reply.status(500).send({ error: 'Failed to retrieve favorite poles' });
+        }
+    }
+    async addFavoritePole(request, reply) {
+        const body = request.body;
+        try {
+            await this.polesService.addFavoritePole(body.userId, body.poleCode, body.stopCode);
+            reply.code(201).send({ message: 'Pole added to favorites' });
+        }
+        catch (error) {
+            console.error('Error adding favorite pole:', error);
+            reply.status(500).send({ error: 'Internal server error' });
+        }
+    }
+    async removeFavoritePole(request, reply) {
+        const body = request.body;
+        try {
+            await this.polesService.removeFavoritePole(body.userId, body.poleCode);
+            reply.code(200).send({ message: 'Pole removed from favorites' });
+        }
+        catch (error) {
+            console.error('Error removing favorite pole:', error);
+            reply.status(500).send({ error: 'Internal server error' });
         }
     }
 }

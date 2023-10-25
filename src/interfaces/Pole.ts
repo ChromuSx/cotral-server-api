@@ -1,5 +1,6 @@
 export interface Pole {
     codicePalina?: string;
+    codiceStop?: string | number;
     nomePalina?: string;
     nomeStop?: string;
     localita?: string;

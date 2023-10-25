@@ -25,7 +25,11 @@ class TransitsService {
                 }
             });
             const parsedResponse = await (0, xml2js_1.parseStringPromise)(response.data);
-            const poleData = parsedResponse.transiti.palina[0];
+            const poleData = parsedResponse.transiti?.palina?.[0];
+            const transitsData = parsedResponse.transiti?.corsa;
+            if (!poleData || !transitsData) {
+                return null;
+            }
             const pole = {
                 codicePalina: poleData.codice[0],
                 nomePalina: poleData.nomePalina[0],
@@ -36,7 +40,6 @@ class TransitsService {
                 nomeStop: poleData.nomeStop[0],
                 preferita: poleData.preferita[0] === '1'
             };
-            const transitsData = parsedResponse.transiti.corsa;
             return {
                 pole,
                 transits: transitsData.map((transitData) => {

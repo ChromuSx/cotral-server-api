@@ -2,11 +2,13 @@ import axios from 'axios';
 import { parseStringPromise } from 'xml2js';
 import { Pole } from '../interfaces/Pole';
 import { StopsService } from './stopsService';
+import { getDb } from '../database';
 
 export class PolesService {
     private baseURL: string;
     private userId: string;
     private stopsService: StopsService;
+    
 
     constructor() {
         this.baseURL = 'http://travel.mob.cotralspa.it:7777/beApp';
@@ -14,7 +16,7 @@ export class PolesService {
         this.stopsService = new StopsService();
     }
 
-    public async getPolesByStopCode(stopCode: string): Promise<Pole[] | null> {
+    public async getPolesByStopCode(stopCode: string | number): Promise<Pole[] | null> {
         try {
             const response = await axios.get(`${this.baseURL}/PIV.do`, {
                 params: {
@@ -148,5 +150,87 @@ export class PolesService {
         }
 
         return null;
+    }
+
+
+    public checkIfPoleIsFavorite(userId: number, poleCode: string): Promise<boolean> {
+        const db = getDb();
+        return new Promise((resolve, reject) => {
+            const sql = 'SELECT COUNT(*) as count FROM favorite_poles WHERE user_id = ? AND pole_code = ?';
+            db.get(sql, [userId, poleCode], (err, row: { count: number }) => {
+                if (err) {
+                    return reject(err);
+                }
+                const isFavorite = row && row.count > 0;
+                resolve(isFavorite);
+            });
+        });
+    }
+
+    public async getFavoritePoles(userId: number): Promise<Pole[] | null> {
+        const db = getDb();
+        return new Promise(async (resolve, reject) => {
+            const sql = 'SELECT pole_code, stop_code FROM favorite_poles WHERE user_id = ?';
+            db.all(sql, [userId], async (err, rows: any) => {
+                if (err) {
+                    return reject(err);
+                }
+    
+                if (!rows || rows.length === 0) {
+                    return resolve([]);
+                }
+
+                const favoritePoleCodes: string[] = rows.map((row: any) => row.pole_code);
+                const favoriteStopCodes: number[] = rows.map((row: any) => row.stop_code);
+                const uniqueFavoriteStopCodes: number[] = [...new Set(favoriteStopCodes)];
+
+                const favoritePoles: Pole[] = [];
+    
+                for (const favoriteStopCode of uniqueFavoriteStopCodes) {
+                    const polesByStopCode = await this.getPolesByStopCode(favoriteStopCode);
+                    if (polesByStopCode) {
+                        const matchingPoles = polesByStopCode.filter(poleByStopCode => {
+                            if (poleByStopCode.codicePalina !== undefined) {
+                                return favoritePoleCodes.includes(poleByStopCode.codicePalina);
+                            }
+                            return false;
+                        });
+                        matchingPoles.forEach(pole => {
+                            pole.preferita = true;
+                            pole.codiceStop = favoriteStopCode;
+                        });
+                        favoritePoles.push(...matchingPoles);
+                    }
+                }
+    
+                resolve(favoritePoles);
+            });
+        });
+    }    
+
+    public addFavoritePole(userId: number, poleCode: string, stopCode: number): Promise<void> {
+        const db = getDb();
+        return new Promise((resolve, reject) => {
+            const sql = 'INSERT INTO favorite_poles(user_id, pole_code, stop_code) VALUES(?, ?, ?)';
+            db.run(sql, [userId, poleCode, stopCode], (err) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve();
+            });
+        });
+    }
+
+    public removeFavoritePole(userId: number, poleCode: string): Promise<void> {
+        const db = getDb();
+        return new Promise((resolve, reject) => {
+            const sql = 'DELETE FROM favorite_poles WHERE user_id = ? AND pole_code = ?';
+            db.run(sql, [userId, poleCode], (err) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve();
+            });
+        });
     }
 }

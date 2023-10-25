@@ -7,6 +7,7 @@ exports.PolesService = void 0;
 const axios_1 = __importDefault(require("axios"));
 const xml2js_1 = require("xml2js");
 const stopsService_1 = require("./stopsService");
+const database_1 = require("../database");
 class PolesService {
     constructor() {
         this.baseURL = 'http://travel.mob.cotralspa.it:7777/beApp';
@@ -131,6 +132,78 @@ class PolesService {
             console.error('Error getting all destinations by arrival locality:', error);
         }
         return null;
+    }
+    checkIfPoleIsFavorite(userId, poleCode) {
+        const db = (0, database_1.getDb)();
+        return new Promise((resolve, reject) => {
+            const sql = 'SELECT COUNT(*) as count FROM favorite_poles WHERE user_id = ? AND pole_code = ?';
+            db.get(sql, [userId, poleCode], (err, row) => {
+                if (err) {
+                    return reject(err);
+                }
+                const isFavorite = row && row.count > 0;
+                resolve(isFavorite);
+            });
+        });
+    }
+    async getFavoritePoles(userId) {
+        const db = (0, database_1.getDb)();
+        return new Promise(async (resolve, reject) => {
+            const sql = 'SELECT pole_code, stop_code FROM favorite_poles WHERE user_id = ?';
+            db.all(sql, [userId], async (err, rows) => {
+                if (err) {
+                    return reject(err);
+                }
+                if (!rows || rows.length === 0) {
+                    return resolve([]);
+                }
+                const favoritePoleCodes = rows.map((row) => row.pole_code);
+                const favoriteStopCodes = rows.map((row) => row.stop_code);
+                const uniqueFavoriteStopCodes = [...new Set(favoriteStopCodes)];
+                const favoritePoles = [];
+                for (const favoriteStopCode of uniqueFavoriteStopCodes) {
+                    const polesByStopCode = await this.getPolesByStopCode(favoriteStopCode);
+                    if (polesByStopCode) {
+                        const matchingPoles = polesByStopCode.filter(poleByStopCode => {
+                            if (poleByStopCode.codicePalina !== undefined) {
+                                return favoritePoleCodes.includes(poleByStopCode.codicePalina);
+                            }
+                            return false;
+                        });
+                        matchingPoles.forEach(pole => {
+                            pole.preferita = true;
+                            pole.codiceStop = favoriteStopCode;
+                        });
+                        favoritePoles.push(...matchingPoles);
+                    }
+                }
+                resolve(favoritePoles);
+            });
+        });
+    }
+    addFavoritePole(userId, poleCode, stopCode) {
+        const db = (0, database_1.getDb)();
+        return new Promise((resolve, reject) => {
+            const sql = 'INSERT INTO favorite_poles(user_id, pole_code, stop_code) VALUES(?, ?, ?)';
+            db.run(sql, [userId, poleCode, stopCode], (err) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve();
+            });
+        });
+    }
+    removeFavoritePole(userId, poleCode) {
+        const db = (0, database_1.getDb)();
+        return new Promise((resolve, reject) => {
+            const sql = 'DELETE FROM favorite_poles WHERE user_id = ? AND pole_code = ?';
+            db.run(sql, [userId, poleCode], (err) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve();
+            });
+        });
     }
 }
 exports.PolesService = PolesService;

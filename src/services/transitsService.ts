@@ -16,7 +16,7 @@ export class TransitsService {
         this.delta = '261';
     }
 
-    public async getTransitsByPoleCode(poleCode: string): Promise<{ pole: Pole; transits: Transit[] }> {
+    public async getTransitsByPoleCode(poleCode: string): Promise<{ pole: Pole; transits: Transit[] } | null> {
         try {
             const response = await axios.get(`${this.baseURL}/PIV.do`, {
                 params: {
@@ -29,8 +29,13 @@ export class TransitsService {
             });
 
             const parsedResponse = await parseStringPromise(response.data);
+            const poleData = parsedResponse.transiti?.palina?.[0];
+            const transitsData = parsedResponse.transiti?.corsa;
 
-            const poleData = parsedResponse.transiti.palina[0];
+            if (!poleData || !transitsData) {
+                return null;
+            }
+
             const pole: Pole = {
                 codicePalina: poleData.codice[0],
                 nomePalina: poleData.nomePalina[0],
@@ -41,8 +46,6 @@ export class TransitsService {
                 nomeStop: poleData.nomeStop[0],
                 preferita: poleData.preferita[0] === '1'
             };
-
-            const transitsData = parsedResponse.transiti.corsa;
 
             return {
                 pole,
