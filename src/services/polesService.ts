@@ -175,6 +175,7 @@ export class PolesService {
             const sql = 'SELECT pole_code, stop_code FROM favorite_poles WHERE user_id = ?';
             db.all(sql, [userId], async (err, rows: any) => {
                 if (err) {
+                    console.log('err', err);
                     return reject(err);
                 }
     
@@ -189,6 +190,7 @@ export class PolesService {
                 const favoritePoles: Pole[] = [];
     
                 for (const favoriteStopCode of uniqueFavoriteStopCodes) {
+                    console.log('favoriteStopCode', favoriteStopCode);
                     const polesByStopCode = await this.getPolesByStopCode(favoriteStopCode);
                     if (polesByStopCode) {
                         const matchingPoles = polesByStopCode.filter(poleByStopCode => {

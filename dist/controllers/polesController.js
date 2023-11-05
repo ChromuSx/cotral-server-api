@@ -86,6 +86,7 @@ class PolesController {
     }
     async getFavoritePoles(request, reply) {
         const { userId } = request.params;
+        console.log(userId);
         if (!userId) {
             reply.status(400).send({ error: 'Invalid parameters' });
             return;
