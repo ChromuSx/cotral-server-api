@@ -190,7 +190,6 @@ export class PolesService {
                 const favoritePoles: Pole[] = [];
     
                 for (const favoriteStopCode of uniqueFavoriteStopCodes) {
-                    console.log('favoriteStopCode', favoriteStopCode);
                     const polesByStopCode = await this.getPolesByStopCode(favoriteStopCode);
                     if (polesByStopCode) {
                         const matchingPoles = polesByStopCode.filter(poleByStopCode => {
