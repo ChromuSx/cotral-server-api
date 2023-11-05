@@ -99,7 +99,6 @@ export class PolesController {
 
     public async getFavoritePoles(request: FastifyRequest<{ Params: { userId: number } }>, reply: FastifyReply): Promise<void> {
         const { userId } = request.params;
-    
         if (!userId) {
             reply.status(400).send({ error: 'Invalid parameters' });
             return;

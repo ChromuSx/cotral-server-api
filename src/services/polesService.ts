@@ -103,15 +103,17 @@ export class PolesService {
     
             if (stops?.length > 0) {
                 for (const stop of stops) {
-                    const poles = await this.getPolesByStopCode(stop.codiceStop);
-                    if (poles !== null) {
-                        const filteredPoles = poles.filter((pole: Pole) => {
-                            return (
-                                pole.destinazioni &&
-                                pole.destinazioni.some(destinazione => destinazione.toLowerCase().includes(destinationLocality.toLowerCase()))
-                            );
-                        });
-                        result = result.concat(filteredPoles);
+                    if (stop.codiceStop) {
+                        const poles = await this.getPolesByStopCode(stop.codiceStop);
+                        if (poles !== null) {
+                            const filteredPoles = poles.filter((pole: Pole) => {
+                                return (
+                                    pole.destinazioni &&
+                                    pole.destinazioni.some(destinazione => destinazione.toLowerCase().includes(destinationLocality.toLowerCase()))
+                                );
+                            });
+                            result = result.concat(filteredPoles);
+                        }
                     }
                 }
             }
