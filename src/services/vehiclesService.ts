@@ -25,6 +25,8 @@ export class VehiclesService {
             const parsedResponse = await parseStringPromise(response.data);
             const vehiclerealTimePositionsData = parsedResponse.listaPosizioni.posizione;
 
+            if (!vehiclerealTimePositionsData) return [];
+
             return vehiclerealTimePositionsData.map((vehicleData: any) => {
                 const coordX = vehicleData.$.pX.split(' ');
                 const coordY = vehicleData.$.pY.split(' ');

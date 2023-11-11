@@ -23,6 +23,8 @@ class VehiclesService {
             });
             const parsedResponse = await (0, xml2js_1.parseStringPromise)(response.data);
             const vehiclerealTimePositionsData = parsedResponse.listaPosizioni.posizione;
+            if (!vehiclerealTimePositionsData)
+                return [];
             return vehiclerealTimePositionsData.map((vehicleData) => {
                 const coordX = vehicleData.$.pX.split(' ');
                 const coordY = vehicleData.$.pY.split(' ');

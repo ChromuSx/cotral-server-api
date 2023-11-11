@@ -175,7 +175,7 @@ export class PolesService {
             const sql = 'SELECT pole_code, stop_code FROM favorite_poles WHERE user_id = ?';
             db.all(sql, [userId], async (err, rows: any) => {
                 if (err) {
-                    console.log('err', err);
+                    console.error('err', err);
                     return reject(err);
                 }
     

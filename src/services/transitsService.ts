@@ -51,8 +51,8 @@ export class TransitsService {
                 pole,
                 transits: transitsData.map((transitData: any) => {
                     const automezzo: Vehicle = {
-                        codice: transitData.automezzo[0]._ ? transitData.automezzo[0]._ : null,
-                        isAlive: transitData.automezzo[0].$.isAlive === '1'
+                        codice: transitData?.automezzo?.[0]?._ ? transitData.automezzo?.[0]?._ : null,
+                        isAlive: transitData?.automezzo?.[0].$?.isAlive === '1'
                     };
 
                     return {
