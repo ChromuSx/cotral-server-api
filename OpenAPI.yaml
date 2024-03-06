@@ -1,0 +1,538 @@
+---
+swagger: "2.0"
+info:
+  title: Cotral Server API
+  version: 1.0.0
+  description: Documentazione API del sistema di trasporto
+  contact:
+    name: Giovanni Guarino
+    email: giovanni.guarino1999@gmail.com
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
+host: api.trasporto.com
+basePath: /v1
+schemes:
+- https
+paths:
+  /poles/position:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      tags:
+      - Pole
+      parameters:
+      - name: latitude
+        description: La latitudine della posizione.
+        in: query
+        required: true
+        type: number
+      - name: longitude
+        description: La longitudine della posizione.
+        in: query
+        required: true
+        type: number
+      - name: range
+        description: "Il raggio entro il quale cercare le paline, in metri."
+        in: query
+        required: false
+        type: number
+      responses:
+        "200":
+          description: Un array di paline nella posizione specificata.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Pole'
+        "400":
+          description: "Parametri invalidi. Assicurati che latitudine e longitudine\
+            \ siano numeri validi e che il raggio, se specificato, sia un numero positivo."
+        "500":
+          description: Errore interno del server. Si è verificato un problema nel
+            processamento della tua richiesta. Riprova più tardi o contatta il supporto
+            tecnico se il problema persiste.
+      operationId: getPolesByPosition
+      summary: Ottiene le paline in base alla posizione
+      description: Questo endpoint restituisce un elenco di paline Cotral basato sulla
+        posizione geografica specificata. Puoi opzionalmente specificare un raggio
+        di ricerca per limitare i risultati alle paline entro una certa distanza dalla
+        posizione data.
+  /poles/{arrivalLocality}/{destinationLocality}:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      tags:
+      - Pole
+      parameters:
+      - name: arrivalLocality
+        description: La località di arrivo.
+        in: path
+        required: true
+        type: string
+      - name: destinationLocality
+        description: La località di destinazione.
+        in: path
+        required: true
+        type: string
+      responses:
+        "200":
+          description: "Restituisce un array di paline che connettono la località\
+            \ di arrivo con quella di destinazione. Se non ci sono paline che corrispondono\
+            \ ai criteri forniti, viene restituito un array vuoto."
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Pole'
+        "400":
+          description: Parametri invalidi. Assicurati che le località di arrivo e
+            destinazione siano fornite correttamente e rappresentino stringhe valide.
+        "500":
+          description: "Errore interno del server. Questo indica che si è verificato\
+            \ un problema nel processamento della tua richiesta da parte del server.\
+            \ Si consiglia di riprovare più tardi e, se il problema persiste, di contattare\
+            \ il supporto tecnico."
+      operationId: getPolesByArrivalAndDestinationLocality
+      summary: Ottiene le paline in base alla località di arrivo e destinazione
+      description: Questo endpoint permette di ottenere un elenco di paline Cotral
+        filtrate in base alla località di arrivo e alla località di destinazione specificate.
+        Fornire sia la località di partenza che quella di arrivo come parametri di
+        percorso per ricevere le paline che collegano queste due località.
+    parameters:
+    - name: arrivalLocality
+      description: La località di arrivo.
+      in: path
+      required: true
+      type: string
+    - name: destinationLocality
+      description: La località di destinazione.
+      in: path
+      required: true
+      type: string
+  /poles/{stopCode}:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      tags:
+      - Pole
+      parameters:
+      - name: stopCode
+        description: Il codice di fermata per cui si vogliono ottenere le paline.
+        in: path
+        required: true
+        type: string
+      - name: userId
+        description: ID dell'utente per verificare se la palina è preferita. Non obbligatorio.
+        in: query
+        required: false
+        type: integer
+      responses:
+        "200":
+          description: "Restituisce un array di paline corrispondenti al codice di\
+            \ fermata fornito. Se specificato, ogni palina include un flag che indica\
+            \ se è preferita dall'utente indicato."
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Pole'
+        "400":
+          description: "Parametri invalidi. Assicurati che il codice di fermata sia\
+            \ fornito correttamente e che, se presente, l'ID utente sia un numero\
+            \ intero valido."
+        "500":
+          description: "Errore interno del server. Questo indica che si è verificato\
+            \ un problema nel processamento della richiesta da parte del server. Si\
+            \ consiglia di riprovare più tardi e, se il problema persiste, di contattare\
+            \ il supporto tecnico."
+      operationId: getPolesByStopCode
+      summary: Ottiene le paline in base al codice di fermata
+      description: Questo endpoint restituisce una lista di paline associate a un
+        specifico codice di fermata.
+    parameters:
+    - name: stopCode
+      description: Il codice di fermata per cui si vogliono ottenere le paline.
+      in: path
+      required: true
+      type: string
+  /poles/destinations/{arrivalLocality}:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      tags:
+      - Pole
+      parameters:
+      - name: arrivalLocality
+        description: La località di arrivo per cui si vogliono ottenere le destinazioni.
+        in: path
+        required: true
+        type: string
+      responses:
+        "200":
+          description: "Restituisce un array di stringhe che rappresentano le destinazioni\
+            \ disponibili dalla località di arrivo specificata. Se non sono presenti\
+            \ destinazioni, viene restituito un array vuoto."
+          schema:
+            type: array
+            items:
+              type: string
+        "400":
+          description: Parametri invalidi. Assicurati che la località di arrivo sia
+            una stringa valida.
+        "500":
+          description: Errore interno del server. Si è verificato un problema nel
+            processamento della tua richiesta. Potrebbe essere utile riprovare più
+            tardi o contattare il supporto tecnico se il problema persiste.
+      operationId: getPoleDestinationsByArrivalLocality
+      summary: Ottiene tutte le destinazioni delle paline in base alla località di
+        arrivo
+      description: Questo endpoint fornisce un elenco di tutte le possibili destinazioni
+        di paline a partire da una specifica località di arrivo. La località di arrivo
+        viene passata come parametro e l'endpoint restituisce un array di destinazioni
+        associate a quella località.
+    parameters:
+    - name: arrivalLocality
+      description: La località di arrivo per cui si vogliono ottenere le destinazioni.
+      in: path
+      required: true
+      type: string
+  /poles/favorites/{userId}:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      tags:
+      - Pole
+      parameters:
+      - name: userId
+        description: ID dell'utente per cui si vogliono ottenere le paline preferite.
+        in: path
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: "Restituisce un array di paline che l'utente ha marcato come\
+            \ preferite. Se l'utente non ha paline preferite, viene restituito un\
+            \ array vuoto."
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Pole'
+        "400":
+          description: Parametri invalidi. Assicurati che l'ID dell'utente sia un
+            intero valido.
+        "500":
+          description: "Errore interno del server. Questo indica che si è verificato\
+            \ un problema nel processamento della richiesta da parte del server. Si\
+            \ consiglia di riprovare più tardi e, se il problema persiste, di contattare\
+            \ il supporto tecnico."
+      operationId: getFavoritePolesByUser
+      summary: Ottiene le paline preferite di un utente
+      description: Questo endpoint recupera tutte le paline che un utente ha contrassegnato
+        come preferite. L'ID dell'utente è necessario per eseguire la query e i risultati
+        includeranno tutte le paline preferite specifiche di quell'utente.
+    parameters:
+    - name: userId
+      description: ID dell'utente per verificare se la palina è preferita. Non obbligatorio.
+      in: path
+      required: true
+      type: integer
+  /stops/firststop/{locality}:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      tags:
+      - Stop
+      parameters:
+      - name: locality
+        description: La località per la quale si desidera ottenere la prima fermata.
+        in: path
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Restituisce la prima fermata nella località specificata.
+          schema:
+            $ref: '#/definitions/Stop'
+        "400":
+          description: Parametri invalidi. Assicurati che la località sia fornita
+            correttamente.
+        "500":
+          description: Errore interno del server. Problema nel processamento della
+            richiesta.
+      operationId: getFirstStopByLocality
+      summary: Ottiene la prima fermata per una località specificata
+      description: Questo endpoint restituisce la prima fermata di Cotral per la località
+        specificata.
+    parameters:
+    - name: locality
+      description: La località per la quale si desidera ottenere le fermate.
+      in: path
+      required: true
+      type: string
+  /stops/{locality}:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      tags:
+      - Stop
+      parameters:
+      - name: locality
+        description: La località per la quale si desidera ottenere le fermate.
+        in: path
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Restituisce le fermate nella località specificata.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Stop'
+        "400":
+          description: Parametri invalidi. Assicurati che la località sia fornita
+            correttamente.
+        "500":
+          description: Errore interno del server. Problema nel processamento della
+            richiesta.
+      operationId: getStopsByLocality
+      summary: Ottiene le fermate per una località specificata
+      description: Questo endpoint restituisce un elenco di fermate Cotral basato
+        sulla località specificata.
+    parameters:
+    - name: locality
+      description: La località per la quale si desidera ottenere le fermate.
+      in: path
+      required: true
+      type: string
+  /transits/{poleCode}:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      tags:
+      - Transit
+      parameters:
+      - name: poleCode
+        description: Il codice della palina per cui si desiderano ottenere i transiti.
+        in: path
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Restituisce i transiti associati al codice della palina specificato.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Transit'
+        "400":
+          description: Parametri invalidi. Assicurati che il codice della palina sia
+            fornito correttamente.
+        "500":
+          description: Errore interno del server. Problema nel processamento della
+            richiesta.
+      operationId: getTransitsByPoleCode
+      summary: Ottiene i transiti per un codice palina specificata
+      description: 'Questo endpoint restituisce un elenco di transiti associati a
+        un specifico codice palina. '
+    parameters:
+    - name: poleCode
+      description: Il codice della palina per cui si desiderano ottenere i transiti.
+      in: path
+      required: true
+      type: string
+  /poles/favorites:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      tags:
+      - Pole
+      parameters:
+      - name: body
+        description: Informazioni dell'utente e della palina per aggiungerla ai preferiti.
+        schema:
+          required:
+          - userId
+          - poleCode
+          - stopCode
+          type: object
+          properties:
+            userId:
+              description: ID dell'utente che aggiunge la palina ai preferiti.
+              type: integer
+            poleCode:
+              description: Codice identificativo della palina da aggiungere ai preferiti.
+              type: string
+            stopCode:
+              description: Codice della fermata associata alla palina.
+              type: integer
+        in: body
+        required: true
+      responses:
+        "201":
+          description: Palina aggiunta con successo ai preferiti.
+        "500":
+          description: Errore interno del server. Impossibile elaborare la richiesta.
+      operationId: addFavoritePole
+      summary: Aggiunge una palina ai preferiti
+      description: "Questo endpoint consente di aggiungere una palina alla lista dei\
+        \ preferiti di un utente. È necessario fornire l'ID dell'utente, il codice\
+        \ della palina e il codice della fermata per completare l'aggiunta."
+    delete:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      tags:
+      - Pole
+      parameters:
+      - name: body
+        description: Informazioni dell'utente e della palina per rimuoverla dai preferiti.
+        schema:
+          required:
+          - userId
+          - poleCode
+          type: object
+          properties:
+            userId:
+              description: ID dell'utente che rimuove la palina dai preferiti.
+              type: integer
+            poleCode:
+              description: Codice identificativo della palina da rimuovere dai preferiti.
+              type: string
+        in: body
+        required: true
+      responses:
+        "200":
+          description: Palina rimossa con successo dai preferiti.
+        "500":
+          description: Errore interno del server. Impossibile elaborare la richiesta.
+      operationId: removeFavoritePole
+      summary: Rimuove una palina dai preferiti
+      description: Questo endpoint consente di rimuovere una palina dalla lista dei
+        preferiti di un utente. È necessario fornire l'ID dell'utente e il codice
+        della palina per completare la rimozione.
+definitions:
+  Pole:
+    type: object
+    properties:
+      codicePalina:
+        type: string
+      codiceStop:
+        type: string
+      nomePalina:
+        type: string
+      nomeStop:
+        type: string
+      localita:
+        type: string
+      comune:
+        type: string
+      coordX:
+        type: number
+      coordY:
+        type: number
+      zonaTariffaria:
+        type: string
+      distanza:
+        type: string
+      destinazioni:
+        type: array
+        items:
+          type: string
+      isCotral:
+        type: integer
+      isCapolinea:
+        type: integer
+      isBanchinato:
+        type: integer
+      preferita:
+        type: boolean
+  Stop:
+    required:
+    - codiceStop
+    - nomeStop
+    - localita
+    - coordX
+    - coordY
+    type: object
+    properties:
+      codiceStop:
+        type: string
+      nomeStop:
+        type: string
+      localita:
+        type: string
+      coordX:
+        type: number
+      coordY:
+        type: number
+  Transit:
+    type: object
+    properties:
+      idCorsa:
+        type: string
+      percorso:
+        type: string
+      partenzaCorsa:
+        type: string
+      orarioPartenzaCorsa:
+        type: string
+      arrivoCorsa:
+        type: string
+      orarioArrivoCorsa:
+        type: string
+      soppressa:
+        type: string
+      numeroOrdine:
+        type: string
+      tempoTransito:
+        type: string
+      ritardo:
+        type: string
+      passato:
+        type: string
+      automezzo:
+        $ref: '#/definitions/Vehicle'
+      testoFermata:
+        type: string
+      dataModifica:
+        type: string
+      instradamento:
+        type: string
+      banchina:
+        type: string
+      monitorata:
+        type: string
+      accessibile:
+        type: string
+  Vehicle:
+    type: object
+    properties:
+      codice:
+        type: string
+      isAlive:
+        type: boolean
+  VehiclePosition:
+    type: object
+    properties:
+      coordX:
+        type: string
+      coordY:
+        type: string
+      time:
+        type: string
