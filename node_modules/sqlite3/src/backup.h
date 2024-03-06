@@ -121,7 +121,7 @@ public:
             Baton(db_, cb_), backup(backup_), filenameIsDest(true) {
             backup->Ref();
         }
-        virtual ~InitializeBaton() {
+        virtual ~InitializeBaton() override {
             backup->Unref();
             if (!db->IsOpen() && db->IsLocked()) {
                 // The database handle was closed before the backup could be opened.
@@ -135,6 +135,7 @@ public:
         std::set<int> retryErrorsSet;
         StepBaton(Backup* backup_, Napi::Function cb_, int pages_) :
             Baton(backup_, cb_), pages(pages_) {}
+        virtual ~StepBaton() override = default;
     };
 
     typedef void (*Work_Callback)(Baton* baton);
@@ -145,21 +146,6 @@ public:
         Baton* baton;
     };
 
-    void init(Database* db_) {
-        db = db_;
-        _handle = NULL;
-        _otherDb = NULL;
-        _destDb = NULL;
-        inited = false;
-        locked = true;
-        completed = false;
-        failed = false;
-        remaining = -1;
-        pageCount = -1;
-        finished = false;
-        db->Ref();
-    }
-
     Backup(const Napi::CallbackInfo& info);
 
     ~Backup() {
@@ -169,8 +155,9 @@ public:
         retryErrors.Reset();
     }
 
-    WORK_DEFINITION(Step);
-    WORK_DEFINITION(Finish);
+    WORK_DEFINITION(Step)
+    WORK_DEFINITION(Finish)
+
     Napi::Value IdleGetter(const Napi::CallbackInfo& info);
     Napi::Value CompletedGetter(const Napi::CallbackInfo& info);
     Napi::Value FailedGetter(const Napi::CallbackInfo& info);
@@ -198,20 +185,21 @@ protected:
 
     Database* db;
 
-    sqlite3_backup* _handle;
-    sqlite3* _otherDb;
-    sqlite3* _destDb;
+    sqlite3_backup* _handle = NULL;
+    sqlite3* _otherDb = NULL;
+    sqlite3* _destDb = NULL;
+
+    bool inited = false;
+    bool locked = true;
+    bool completed = false;
+    bool failed = false;
+    int remaining = -1;
+    int pageCount = -1;
+    bool finished = false;
+
     int status;
     std::string message;
-
-    bool inited;
-    bool locked;
-    bool completed;
-    bool failed;
-    int remaining;
-    int pageCount;
-    bool finished;
-    std::queue<Call*> queue;
+    std::queue<std::unique_ptr<Call>> queue;
 
     Napi::Reference<Array> retryErrors;
 };

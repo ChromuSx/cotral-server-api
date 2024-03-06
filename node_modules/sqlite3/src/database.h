@@ -27,14 +27,14 @@ public:
     static Napi::Object Init(Napi::Env env, Napi::Object exports);
 
     static inline bool HasInstance(Napi::Value val) {
-        Napi::Env env = val.Env();
+        auto env = val.Env();
         Napi::HandleScope scope(env);
         if (!val.IsObject()) return false;
-        Napi::Object obj = val.As<Napi::Object>();
+        auto obj = val.As<Napi::Object>();
 #if NAPI_VERSION < 6
         return obj.InstanceOf(constructor.Value());
 #else
-        Napi::FunctionReference* constructor =
+        auto constructor =
             env.GetInstanceData<Napi::FunctionReference>();
         return obj.InstanceOf(constructor->Value());
 #endif
@@ -66,18 +66,21 @@ public:
         int mode;
         OpenBaton(Database* db_, Napi::Function cb_, const char* filename_, int mode_) :
             Baton(db_, cb_), filename(filename_), mode(mode_) {}
+        virtual ~OpenBaton() override = default;
     };
 
     struct ExecBaton : Baton {
         std::string sql;
         ExecBaton(Database* db_, Napi::Function cb_, const char* sql_) :
             Baton(db_, cb_), sql(sql_) {}
+        virtual ~ExecBaton() override = default;
     };
 
     struct LoadExtensionBaton : Baton {
         std::string filename;
         LoadExtensionBaton(Database* db_, Napi::Function cb_, const char* filename_) :
             Baton(db_, cb_), filename(filename_) {}
+        virtual ~LoadExtensionBaton() override = default;
     };
 
     struct LimitBaton : Baton {
@@ -85,6 +88,7 @@ public:
         int value;
         LimitBaton(Database* db_, Napi::Function cb_, int id_, int value_) :
             Baton(db_, cb_), id(id_), value(value_) {}
+        virtual ~LimitBaton() override = default;
     };
 
     typedef void (*Work_Callback)(Baton* baton);
@@ -119,18 +123,6 @@ public:
     friend class Statement;
     friend class Backup;
 
-    void init() {
-        _handle = NULL;
-        open = false;
-        closing = false;
-        locked = false;
-        pending = 0;
-        serialize = false;
-        debug_trace = NULL;
-        debug_profile = NULL;
-        update_event = NULL;
-    }
-
     Database(const Napi::CallbackInfo& info);
 
     ~Database() {
@@ -141,38 +133,20 @@ public:
     }
 
 protected:
-    static void Work_BeginOpen(Baton* baton);
-    static void Work_Open(napi_env env, void* data);
-    static void Work_AfterOpen(napi_env env, napi_status status, void* data);
-
-    Napi::Value OpenGetter(const Napi::CallbackInfo& info);
+    WORK_DEFINITION(Open);
+    WORK_DEFINITION(Exec);
+    WORK_DEFINITION(Close);
+    WORK_DEFINITION(LoadExtension);
 
     void Schedule(Work_Callback callback, Baton* baton, bool exclusive = false);
     void Process();
 
-    Napi::Value Exec(const Napi::CallbackInfo& info);
-    static void Work_BeginExec(Baton* baton);
-    static void Work_Exec(napi_env env, void* data);
-    static void Work_AfterExec(napi_env env, napi_status status, void* data);
-
     Napi::Value Wait(const Napi::CallbackInfo& info);
     static void Work_Wait(Baton* baton);
 
-    Napi::Value Close(const Napi::CallbackInfo& info);
-    static void Work_BeginClose(Baton* baton);
-    static void Work_Close(napi_env env, void* data);
-    static void Work_AfterClose(napi_env env, napi_status status, void* data);
-
-    Napi::Value LoadExtension(const Napi::CallbackInfo& info);
-    static void Work_BeginLoadExtension(Baton* baton);
-    static void Work_LoadExtension(napi_env env, void* data);
-    static void Work_AfterLoadExtension(napi_env env, napi_status status, void* data);
-
     Napi::Value Serialize(const Napi::CallbackInfo& info);
     Napi::Value Parallelize(const Napi::CallbackInfo& info);
-
     Napi::Value Configure(const Napi::CallbackInfo& info);
-
     Napi::Value Interrupt(const Napi::CallbackInfo& info);
 
     static void SetBusyTimeout(Baton* baton);
@@ -193,20 +167,20 @@ protected:
     void RemoveCallbacks();
 
 protected:
-    sqlite3* _handle;
+    sqlite3* _handle = NULL;
 
-    bool open;
-    bool closing;
-    bool locked;
-    unsigned int pending;
+    bool open = false;
+    bool closing = false;
+    bool locked = false;
+    unsigned int pending = 0;
 
-    bool serialize;
+    bool serialize = false;
 
     std::queue<Call*> queue;
 
-    AsyncTrace* debug_trace;
-    AsyncProfile* debug_profile;
-    AsyncUpdate* update_event;
+    AsyncTrace* debug_trace = NULL;
+    AsyncProfile* debug_profile = NULL;
+    AsyncUpdate* update_event = NULL;
 };
 
 }

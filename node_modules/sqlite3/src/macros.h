@@ -15,7 +15,7 @@ inline Napi::String StringConcat(Napi::Value str1, Napi::Value str2) {
 // A Napi substitute IsInt32()
 inline bool OtherIsInt(Napi::Number source) {
     double orig_val = source.DoubleValue();
-    double int_val = (double)source.Int32Value();
+    double int_val = static_cast<double>(source.Int32Value());
     if (orig_val == int_val) {
         return true;
     } else {
@@ -137,6 +137,19 @@ inline bool OtherIsInt(Napi::Number source) {
     static void Work_##name(napi_env env, void* data);                         \
     static void Work_After##name(napi_env env, napi_status status, void* data);
 
+#ifdef DEBUG
+    #define ASSERT_STATUS() assert(status == 0);
+#else
+    #define ASSERT_STATUS() (void)status;
+#endif
+
+#define CREATE_WORK(name, workerFn, afterFn)                                    \
+    int status = napi_create_async_work(env, NULL, Napi::String::New(env, name),\
+                             workerFn, afterFn, baton, &baton->request);        \
+                                                                                \
+    ASSERT_STATUS();                                                            \
+    napi_queue_async_work(env, baton->request);
+
 #define STATEMENT_BEGIN(type)                                                  \
     assert(baton);                                                             \
     assert(baton->stmt);                                                       \
@@ -145,13 +158,8 @@ inline bool OtherIsInt(Napi::Number source) {
     assert(baton->stmt->prepared);                                             \
     baton->stmt->locked = true;                                                \
     baton->stmt->db->pending++;                                                \
-    Napi::Env env = baton->stmt->Env();                                        \
-    int status = napi_create_async_work(                                       \
-        env, NULL, Napi::String::New(env, "sqlite3.Statement."#type),          \
-        Work_##type, Work_After##type, baton, &baton->request                  \
-    );                                                                         \
-    assert(status == 0);                                                       \
-    napi_queue_async_work(env, baton->request);
+    auto env = baton->stmt->Env();                                             \
+    CREATE_WORK("sqlite3.Statement."#type, Work_##type, Work_After##type);
 
 #define STATEMENT_INIT(type)                                                   \
     type* baton = static_cast<type*>(data);                                    \
@@ -181,13 +189,8 @@ inline bool OtherIsInt(Napi::Number source) {
     assert(baton->backup->inited);                                             \
     baton->backup->locked = true;                                              \
     baton->backup->db->pending++;                                              \
-    Napi::Env env = baton->backup->Env();                                      \
-    int status = napi_create_async_work(                                       \
-        env, NULL, Napi::String::New(env, "sqlite3.Backup."#type),             \
-        Work_##type, Work_After##type, baton, &baton->request                  \
-    );                                                                         \
-    assert(status == 0);                                                       \
-    napi_queue_async_work(env, baton->request);
+    auto env = baton->backup->Env();                                           \
+    CREATE_WORK("sqlite3.Backup."#type, Work_##type, Work_After##type);
 
 #define BACKUP_INIT(type)                                                      \
     type* baton = static_cast<type*>(data);                                    \
@@ -200,16 +203,5 @@ inline bool OtherIsInt(Napi::Number source) {
     backup->db->pending--;                                                     \
     backup->Process();                                                         \
     backup->db->Process();
-
-#define DELETE_FIELD(field)                                                    \
-    if (field != NULL) {                                                       \
-        switch ((field)->type) {                                               \
-            case SQLITE_INTEGER: delete (Values::Integer*)(field); break;      \
-            case SQLITE_FLOAT:   delete (Values::Float*)(field); break;        \
-            case SQLITE_TEXT:    delete (Values::Text*)(field); break;         \
-            case SQLITE_BLOB:    delete (Values::Blob*)(field); break;         \
-            case SQLITE_NULL:    delete (Values::Null*)(field); break;         \
-        }                                                                      \
-    }
 
 #endif
