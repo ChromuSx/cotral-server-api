@@ -1,0 +1,61 @@
+# Dipendenze
+/node_modules
+
+# File di log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Directory di output della build
+/dist
+/build
+
+# Direttori temporanee
+/tmp
+/.pnp
+.pnp.js
+
+# File di configurazione dell'ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# File di dump del debugger
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Directory di cache di sistema operativo
+.DS_Store
+Thumbs.db
+
+# Directory di cache di editor
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# File di pacchetto lock
+package-lock.json
+yarn.lock
+
+# File di configurazione del progetto
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Direttori di strumenti di compilazione e configurazione
+/.next
+/.nuxt
+/.vuepress
+/.serverless/
+/.fusebox/
+/.dynamodb/
+/.tern-port
