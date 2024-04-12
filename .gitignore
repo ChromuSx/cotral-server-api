@@ -1,61 +1,19 @@
-# Dipendenze
-/node_modules
+*.log
 
-# File di log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+node_modules/
 
-# Directory di output della build
 /dist
 /build
+/bin
 
-# Direttori temporanee
-/tmp
-/.pnp
-.pnp.js
-
-# File di configurazione dell'ambiente
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 
-# File di dump del debugger
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+.DS_Store # per macOS
+Thumbs.db # per Windows
 
-# Directory di cache di sistema operativo
-.DS_Store
-Thumbs.db
+/out
+/obj
 
-# Directory di cache di editor
-.vscode/
-.idea/
-*.sublime-project
-*.sublime-workspace
-
-# File di pacchetto lock
-package-lock.json
-yarn.lock
-
-# File di configurazione del progetto
-/.idea
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
-
-# Direttori di strumenti di compilazione e configurazione
-/.next
-/.nuxt
-/.vuepress
-/.serverless/
-/.fusebox/
-/.dynamodb/
-/.tern-port
+venv/
+*.venv
+env/

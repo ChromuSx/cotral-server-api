@@ -35,10 +35,11 @@ const createApp = async (): Promise<FastifyInstance> => {
 
 const start = async (): Promise<void> => {
     const app = await createApp();
+    const host = process.env.PORT ? process.env.HOST : '127.0.0.1';
     const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
     try {
-        await app.listen({ port: port});
+        await app.listen({ host: host, port: port});
         app.log.info(`Server listening on port ${port}`);
     } catch (error) {
         app.log.error(error);
