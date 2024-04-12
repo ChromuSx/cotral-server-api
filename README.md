@@ -22,6 +22,9 @@ Queste librerie e framework sono stati scelti per la loro efficienza, facilità 
 ## Documentazione API con OpenAPI
 Per una documentazione dettagliata delle API, consulta il file OpenAPI.yaml incluso nel repository. Questo file contiene tutte le specifiche necessarie per comprendere e utilizzare le API Cotral Server.
 
+## Test delle API
+Per testare le API tramite chiamate HTTP, utilizza il seguente endpoint: [https://cotral-server-api.onrender.com/](https://cotral-server-api.onrender.com/). Questo ti permetterà di effettuare chiamate dirette all'API per sperimentare e verificare le funzionalità offerte, ricevendo le risposte in formato JSON.
+
 ## Installazione 
 
 1. Clona il repository: 
