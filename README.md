@@ -19,6 +19,8 @@ Cotral Server API è un progetto server-side scritto in TypeScript che funge da 
 
 Queste librerie e framework sono stati scelti per la loro efficienza, facilità d'uso e comunità di supporto attiva, rendendo lo sviluppo e la manutenzione dell'API Cotral Server più gestibili.
 
+## Documentazione API con OpenAPI
+Per una documentazione dettagliata delle API, consulta il file OpenAPI.yaml incluso nel repository. Questo file contiene tutte le specifiche necessarie per comprendere e utilizzare le API Cotral Server.
 
 ## Installazione 
 
