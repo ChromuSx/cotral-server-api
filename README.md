@@ -1,6 +1,10 @@
 # 🚌 Cotral Server API
 
 <div align="center">
+  <img src="logo.png" alt="CotralServerAPI" width="200">
+</div>
+
+<div align="center">
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Fastify](https://img.shields.io/badge/fastify-%23000000.svg?style=for-the-badge&logo=fastify&logoColor=white)](https://www.fastify.io/)
@@ -346,3 +350,4 @@ Distribuito sotto licenza MIT. Vedi il file [LICENSE](LICENSE) per maggiori info
 <div align="center">
 Made with ❤️ in Italy
 </div>
+
